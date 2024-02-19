@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Widget12</string>
     <string name="app_widget_description">This is an app widget description</string>
-    <string name="todo_list_1">快使用C++,哼哼哈嘿</string>
-    <string name="todo_list_2">学习Composs</string>
-    <string name="todo_list_3">摸鱼！摸鱼！摸鱼！</string>
+    <string name="todo_list_1">开始</string>
+    <string name="todo_list_2">0</string>
+    <string name="todo_list_3">清空</string>
 </resources>

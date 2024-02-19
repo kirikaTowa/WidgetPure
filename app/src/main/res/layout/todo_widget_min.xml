@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:text="TODO"
+        android:text="计数器"
         android:textSize="26sp"
         android:textStyle="italic|bold"
         android:textColor="@color/white"/>
@@ -38,6 +38,7 @@
         android:layout_height="match_parent">
 
         <TextView
+            android:id="@+id/tvStart"
             style="@style/todo_list_title"
             android:layout_margin="10dp"
             android:text="@string/todo_list_1"
@@ -45,6 +46,7 @@
             android:layout_height="wrap_content"/>
 
         <TextView
+            android:id="@+id/tvContent"
             style="@style/todo_list_title"
             android:layout_margin="10dp"
             android:text="@string/todo_list_2"
@@ -52,6 +54,7 @@
             android:layout_height="wrap_content"/>
 
         <TextView
+            android:id="@+id/tvClean"
             style="@style/todo_list_title"
             android:layout_margin="10dp"
             android:text="@string/todo_list_3"

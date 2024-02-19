@@ -9,10 +9,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Widget12">
-        <receiver
-            android:name=".TodoReceiver"
+        <service
+            android:name=".CountingService"
             android:enabled="true"
-            android:exported="true"></receiver>
+            android:exported="true"></service>
+
         <receiver
             android:name=".TodoWidget"
             android:exported="true">

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -12,15 +13,17 @@ import android.os.Bundle
 import android.util.Log
 import android.util.SizeF
 import android.widget.RemoteViews
-import android.widget.Toast
 import androidx.annotation.IdRes
-import androidx.core.os.BuildCompat
+import com.example.widget12.TodoWidget.Companion.count
 
 const val TAG = "TodoWidget"
 
-const val EXTRA_VIEW_ID = "extra_view_id"
 
 class TodoWidget : AppWidgetProvider() {
+
+    companion object{
+        var count=5
+    }
 
     override fun onUpdate(
         context: Context,
@@ -36,6 +39,36 @@ class TodoWidget : AppWidgetProvider() {
     override fun onReceive(context: Context?, intent: Intent?) {
         super.onReceive(context, intent)
         Log.d(TAG, "TodoWidget onReceive: ")
+        Log.d(TAG, "TodoWidget onReceive: ")
+        context?.let {
+            val action = intent?.action
+
+            if ("CountingService.COUNT_UPDATE" == action) {
+                // “更新”广播
+                Log.d(TAG, "TodoWidget 触发计数器 将当前count显示出来: ")
+
+                // 增加计数器
+                count++
+
+                // 更新 Widget UI
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(context, TodoWidget::class.java))
+
+                for (appWidgetId in appWidgetIds) {
+                    updateAppWidget(context, appWidgetManager, appWidgetId)
+                }
+            }else if ("CountingService.COUNT_CLEAN" == action){
+                count=0
+
+                // 更新 Widget UI
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(context, TodoWidget::class.java))
+
+                for (appWidgetId in appWidgetIds) {
+                    updateAppWidget(context, appWidgetManager, appWidgetId)
+                }
+            }
+        }
 
     }
 
@@ -72,12 +105,6 @@ internal fun updateAppWidget(
     appWidgetId: Int
 ) {
 
-/*    val views = RemoteViews(context.packageName, R.layout.todo_widget)
-    views.setTextViewText(R.id.xxx,"this is TODO list")
-    appWidgetManager.updateAppWidget(appWidgetId, views)*/
-
-
-
     val remoteViewsMin = RemoteViews(
         context.packageName,
         R.layout.todo_widget_min
@@ -93,10 +120,10 @@ internal fun updateAppWidget(
         R.layout.todo_widget_max
     ).apply {
         //打开App
-        setOnClickPendingIntent(R.id.add, openAppPendingIntent(context,R.id.add))
-        //setOnClickPendingIntent(R.id.duck_debug, openAppPendingIntent(context,R.id.duck_debug))
+        setOnClickPendingIntent(R.id.add, openAppPendingIntent(context, R.id.add))
 
-        setOnClickPendingIntent(R.id.title, receivePendingIntent(context,R.id.title))
+        setOnClickPendingIntent(R.id.tvStart, countUp(context, R.id.tvStart))
+        setOnClickPendingIntent(R.id.tvClean, cleanUp(context, R.id.tvClean))
     }
 
     /*不同大小控件对应不同布局*/
@@ -105,12 +132,18 @@ internal fun updateAppWidget(
     viewMapping[SizeF(230.0f, 180.0f)] = remoteViewsNormal
     viewMapping[SizeF(270.0f, 300.0f)] = remoteViewsMax
 
+    // 设置 TextView 的文本为计数器的值
+    remoteViewsMax.setTextViewText(R.id.tvContent, count.toString())
+
+
+
     /*只有在Android12以上版本才支持*/
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         appWidgetManager.updateAppWidget(appWidgetId, RemoteViews(viewMapping))
     }else{
         appWidgetManager.updateAppWidget(appWidgetId, remoteViewsNormal)
     }
+
 
 }
 
@@ -129,15 +162,27 @@ private fun openAppPendingIntent(context: Context,@IdRes id:Int):PendingIntent{
     return appOpenIntent
 }
 
-private fun receivePendingIntent(context: Context,@IdRes id:Int):PendingIntent{
-    val activityIntent = Intent(context, TodoWidget::class.java).apply {
-        setData(Uri.parse("harvic:$id"))
-        flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+private fun countUp(context: Context,@IdRes id:Int):PendingIntent{
+    val intent = Intent(context, TodoWidget::class.java).apply {
+        action = "CountingService.COUNT_UPDATE"
     }
-    return PendingIntent.getActivity(
+    return PendingIntent.getBroadcast(
         context,
         2,
-        activityIntent,
-        PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+}
+
+//requestCode不能一样 不然UI会异常
+private fun cleanUp(context: Context,@IdRes id:Int):PendingIntent{
+    val intent = Intent(context, TodoWidget::class.java).apply {
+        action = "CountingService.COUNT_CLEAN"
+    }
+    return PendingIntent.getBroadcast(
+        context,
+        3,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 }
